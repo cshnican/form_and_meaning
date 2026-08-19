@@ -2,10 +2,9 @@
 Run the tradeoff model across a spectrum of societies and produce figures.
 
 Outputs (written to ./figures):
-  1. society_profiles.png  -- who-knows-what and the conventionalization frontier
-  2. exposure_sweep.png    -- lexicon composition and total cost vs society type
-  3. cost_vs_shared.png    -- results plotted against % shared vocabulary
-  4. validation.png        -- bottom-up agent simulation vs analytic mean-field
+  1. society_profiles.png       -- who-knows-what and the conventionalization frontier
+  2. lexicon_vs_society.png     -- lexicon composition vs society type
+  3. cost_vs_society.png        -- optimal vs naive strategy cost vs society type
 """
 
 from __future__ import annotations
@@ -18,7 +17,6 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-from agent_simulation import simulate_society
 from society_model import (
     ModelParams,
     evaluate_society,
@@ -77,131 +75,72 @@ def _mark_archetypes(ax, y: float, va: str = "top") -> None:
                 va=va, ha="left")
 
 
-def fig_exposure_sweep(params: ModelParams) -> None:
+def _sweep(params: ModelParams):
     E_grid = np.geomspace(10, 8000, 80)
     results = sweep_exposure(E_grid, params)
+    return E_grid, results
 
+
+def fig_lexicon_vs_society(params: ModelParams) -> None:
+    E_grid, results = _sweep(params)
     frac_types = [r.frac_conv_types for r in results]
     frac_tokens = [r.frac_conv_tokens for r in results]
     shared = [r.shared_vocab_frac for r in results]
+
+    fig, ax = plt.subplots(figsize=(9.5, 5))
+    ax.plot(E_grid, shared, lw=2, label="% lexicon shareable ($q \\geq 0.5$)")
+    ax.plot(E_grid, frac_tokens, lw=2, label="% of usage that is conventional")
+    ax.plot(E_grid, frac_types, lw=2, label="% of meanings conventionalized")
+    ax.set_xscale("log")
+    ax.set_ylim(0, 1.08)
+    ax.set_xlabel("society type:  shared exposure $E$   (open  ←→  close-knit)")
+    ax.set_ylabel("fraction")
+    ax.set_title("Lexicon composition vs society type")
+    ax.legend(frameon=False, loc="upper left", fontsize=9,
+              bbox_to_anchor=(1.02, 1.0), borderaxespad=0)
+    ax.grid(alpha=0.3)
+    _mark_archetypes(ax, 1.06)
+
+    fig.tight_layout()
+    out = os.path.join(FIG_DIR, "lexicon_vs_society.png")
+    fig.savefig(out, dpi=140)
+    plt.close(fig)
+    print("wrote", out)
+
+
+def fig_cost_vs_society(params: ModelParams) -> None:
+    E_grid, results = _sweep(params)
     total = [r.total_cost for r in results]
-    all_comp = results[0].total_cost_all_comp  # constant baseline
+    all_comp = results[0].total_cost_all_comp
     all_conv = [r.total_cost_all_conv for r in results]
 
-    fig, (ax0, ax1) = plt.subplots(1, 2, figsize=(14, 5.6))
+    fig, ax = plt.subplots(figsize=(8, 5.4))
+    ax.plot(E_grid, total, lw=2.5, color="C3", label="OPTIMAL: best choice per meaning")
+    ax.axhline(all_comp, ls="--", lw=2, color="C0",
+               label="naive: everything compositional (flat — needs no sharing)")
+    ax.plot(E_grid, all_conv, ls=":", lw=2.5, color="C2",
+            label="naive: everything conventional")
+    ax.set_xscale("log")
+    ax.set_ylim(top=6700)
+    ax.set_xlabel("society type:  shared exposure $E$   (open  ←→  close-knit)")
+    ax.set_ylabel("total communicative cost per agent   (lower = better)")
+    ax.set_title("Cost of the optimal strategy vs. naive ones\n"
+                 "(gap to red = value of choosing per-meaning)")
+    ax.legend(frameon=False, loc="lower left", fontsize=9)
+    ax.grid(alpha=0.3)
 
-    # --- (a) lexicon composition summaries vs society type ---
-    ax0.plot(E_grid, shared, lw=2, label="% lexicon shareable ($q \\geq 0.5$)")
-    ax0.plot(E_grid, frac_tokens, lw=2, label="% of usage that is conventional")
-    ax0.plot(E_grid, frac_types, lw=2, label="% of meanings conventionalized")
-    ax0.set_xscale("log")
-    ax0.set_ylim(0, 1.08)
-    ax0.set_xlabel("society type:  shared exposure $E$   (open  ←→  close-knit)")
-    ax0.set_ylabel("fraction")
-    ax0.set_title("(a) Lexicon composition vs society type")
-    ax0.legend(frameon=False, loc="upper left", fontsize=9)
-    ax0.grid(alpha=0.3)
-    _mark_archetypes(ax0, 1.06)
-
-    # --- (b) cost of optimal vs the two pure strategies ---
-    ax1.plot(E_grid, total, lw=2.5, color="C3", label="OPTIMAL: best choice per meaning")
-    ax1.axhline(all_comp, ls="--", lw=2, color="C0",
-                label="naive: everything compositional (flat — needs no sharing)")
-    ax1.plot(E_grid, all_conv, ls=":", lw=2.5, color="C2",
-             label="naive: everything conventional")
-    ax1.set_xscale("log")
-    ax1.set_ylim(top=6700)  # headroom so archetype labels clear the dashed line
-    ax1.set_xlabel("society type:  shared exposure $E$   (open  ←→  close-knit)")
-    ax1.set_ylabel("total communicative cost per agent   (lower = better)")
-    ax1.set_title("(b) Cost of the optimal strategy vs. naive ones\n"
-                  "(gap to red = value of choosing per-meaning)")
-    ax1.legend(frameon=False, loc="lower left", fontsize=9)
-    ax1.grid(alpha=0.3)
-
-    # annotate why 'all conventional' is U-shaped (kept clear of the flat line)
-    ax1.annotate("all-conventional fails here\n(hearer often doesn't know it → repair)",
-                 xy=(E_grid[2], all_conv[2]), xytext=(40, 4650),
-                 fontsize=8, color="C2",
-                 arrowprops=dict(arrowstyle="->", color="C2", lw=1))
-    ax1.annotate("and wastes memory here\n(stores the rare tail nobody needs short)",
-                 xy=(E_grid[-1], all_conv[-1]), xytext=(700, 5100),
-                 fontsize=8, color="C2", ha="center",
-                 arrowprops=dict(arrowstyle="->", color="C2", lw=1))
-    _mark_archetypes(ax1, 6600)
+    ax.annotate("all-conventional fails here\n(hearer often doesn't know it → repair)",
+                xy=(E_grid[2], all_conv[2]), xytext=(40, 4650),
+                fontsize=8, color="C2",
+                arrowprops=dict(arrowstyle="->", color="C2", lw=1))
+    ax.annotate("and wastes memory here\n(stores the rare tail nobody needs short)",
+                xy=(E_grid[-1], all_conv[-1]), xytext=(700, 5100),
+                fontsize=8, color="C2", ha="center",
+                arrowprops=dict(arrowstyle="->", color="C2", lw=1))
+    _mark_archetypes(ax, 6600)
 
     fig.tight_layout()
-    out = os.path.join(FIG_DIR, "exposure_sweep.png")
-    fig.savefig(out, dpi=140)
-    plt.close(fig)
-    print("wrote", out)
-
-
-def fig_cost_vs_shared(params: ModelParams) -> None:
-    """Everything plotted against the parameter the user cares about: % shared vocab."""
-    E_grid = np.geomspace(10, 8000, 80)
-    results = sweep_exposure(E_grid, params)
-    shared = np.array([r.shared_vocab_frac for r in results])
-    total = np.array([r.total_cost for r in results])
-    frac_tokens = np.array([r.frac_conv_tokens for r in results])
-
-    order = np.argsort(shared)
-    shared, total, frac_tokens = shared[order], total[order], frac_tokens[order]
-
-    fig, ax = plt.subplots(figsize=(7.5, 5))
-    ax.plot(shared * 100, total, color="C3", lw=2, label="total cost (per agent)")
-    ax.set_xlabel("% of vocabulary that is shareable across the population")
-    ax.set_ylabel("total communicative cost (per agent)", color="C3")
-    ax.tick_params(axis="y", labelcolor="C3")
-
-    ax2 = ax.twinx()
-    ax2.plot(shared * 100, frac_tokens * 100, color="C0", lw=2, ls="--",
-             label="% usage conventional")
-    ax2.set_ylabel("% of usage carried by conventions", color="C0")
-    ax2.tick_params(axis="y", labelcolor="C0")
-
-    ax.set_title("As more of the lexicon can be shared,\ncost falls and conventions carry more of the load")
-    fig.tight_layout()
-    out = os.path.join(FIG_DIR, "cost_vs_shared.png")
-    fig.savefig(out, dpi=140)
-    plt.close(fig)
-    print("wrote", out)
-
-
-def fig_validation(params: ModelParams) -> None:
-    f = zipf_frequencies(params.V, params.zipf_s)
-    ranks = np.arange(1, params.V + 1)
-    rng = np.random.default_rng(7)
-
-    fig, (ax0, ax1) = plt.subplots(1, 2, figsize=(13, 5))
-
-    labels, sims = [], []
-    for label, E in SOCIETIES:
-        sim = simulate_society(E, params, rng=rng)
-        sims.append(sim)
-        labels.append(label)
-        ax0.plot(ranks, knowledge_prob(f, E, params.lam), color="k", alpha=0.4, lw=1)
-        ax0.plot(ranks, sim.emp_q, ".", ms=2, label=f"{label} (E={E:g})")
-    ax0.set_xscale("log")
-    ax0.set_xlabel("meaning, by frequency rank")
-    ax0.set_ylabel("P(knows) — dots = simulated, lines = analytic")
-    ax0.set_title("(a) Emergent knowledge matches the mean-field")
-    ax0.legend(frameon=False)
-    ax0.grid(alpha=0.3)
-
-    x = np.arange(len(labels))
-    w = 0.27
-    ax1.bar(x - w, [s.cost_per_agent_all_comp for s in sims], w, label="all compositional", color="C0")
-    ax1.bar(x, [s.cost_per_agent_optimal for s in sims], w, label="optimal (analytic strategy)", color="C3")
-    ax1.bar(x + w, [s.cost_per_agent_all_conv for s in sims], w, label="all conventional", color="C2")
-    ax1.set_xticks(x)
-    ax1.set_xticklabels(labels)
-    ax1.set_ylabel("realized cost per agent (simulated)")
-    ax1.set_title("(b) Optimal strategy wins in every society")
-    ax1.legend(frameon=False)
-    ax1.grid(alpha=0.3, axis="y")
-
-    fig.tight_layout()
-    out = os.path.join(FIG_DIR, "validation.png")
+    out = os.path.join(FIG_DIR, "cost_vs_society.png")
     fig.savefig(out, dpi=140)
     plt.close(fig)
     print("wrote", out)
@@ -211,9 +150,8 @@ def main() -> None:
     os.makedirs(FIG_DIR, exist_ok=True)
     params = ModelParams()
     fig_society_profiles(params)
-    fig_exposure_sweep(params)
-    fig_cost_vs_shared(params)
-    fig_validation(params)
+    fig_lexicon_vs_society(params)
+    fig_cost_vs_society(params)
     print("\nAll figures written to ./figures/")
 
 

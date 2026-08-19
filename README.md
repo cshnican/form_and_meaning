@@ -1,6 +1,6 @@
 # Compositionality vs. conventionalization: a cost model
 
-A small, bottom-up model of *how a society should encode form–meaning pairings*,
+A small cost model of *how a society should encode form–meaning pairings*,
 given how widely its vocabulary can be shared.
 
 ## The idea
@@ -46,8 +46,6 @@ conv:  f_i · T · [ l + (1 - q_i)·repair ]  +  m · q_i
 ## Files
 
 - `society_model.py` — core cost model, per-item optimizer, aggregate summaries.
-- `agent_simulation.py` — bottom-up agent-based version that re-derives the same
-  behaviour from individual exposures and dialogues (validates the mean-field).
 - `run_experiments.py` — sweeps societies and writes figures to `figures/`.
 
 ## Run
@@ -57,7 +55,6 @@ python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
 python society_model.py       # quick numeric summary of 3 archetypal societies
-python agent_simulation.py    # bottom-up check against the analytic model
 python run_experiments.py     # generate all figures in ./figures/
 ```
 
@@ -68,13 +65,11 @@ python run_experiments.py     # generate all figures in ./figures/
    knit societies push the frontier deeper into the tail
    (`figures/society_profiles.png`).
 2. **Open societies still conventionalize their frequent core.** Even at low `E`,
-   ~1% of *types* are conventional but they carry ~40%+ of *tokens*.
+   ~1% of *types* are conventional but they carry ~40%+ of *tokens*
+   (`figures/lexicon_vs_society.png`).
 3. **Being all-conventional backfires in close-knit societies.** Memorizing the
    rare tail wastes memory; only per-item optimization keeps improving
-   (`figures/exposure_sweep.png`, panel b).
-4. **Diminishing returns in shared vocabulary.** Most of the cost savings come
-   from sharing the first ~10–20% of the (frequency-ranked) lexicon
-   (`figures/cost_vs_shared.png`).
+   (`figures/cost_vs_society.png`).
 
 ## Knobs to explore
 
