@@ -91,10 +91,3 @@ society), so a speaker picks conventional vs. compositional depending on *who
 they are addressing*. That naturally accommodates jargon / private lexicons
 inside an otherwise open society.
 
-## Related literature
-
-- Wray & Grace (2007), esoteric vs. exoteric communication.
-- Lupyan & Dale (2010), language structure vs. social structure.
-- Trudgill, *Sociolinguistic Typology*.
-- Gibson et al. (2019), efficiency in language; Kemp, Regier, Piantadosi.
-- Zipf (1949), law of abbreviation; Clark, common ground.
