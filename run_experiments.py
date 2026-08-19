@@ -69,12 +69,12 @@ def fig_society_profiles(params: ModelParams) -> None:
     print("wrote", out)
 
 
-def _mark_archetypes(ax, ymax: float) -> None:
+def _mark_archetypes(ax, y: float, va: str = "top") -> None:
     """Drop labelled guide-lines for the open and close-knit archetypes."""
     for E, name in [(20.0, "open"), (5000.0, "close-knit")]:
         ax.axvline(E, color="0.6", lw=1, ls=(0, (2, 3)))
-        ax.text(E, ymax, f" {name}\n E={E:g}", color="0.35", fontsize=9,
-                va="top", ha="left")
+        ax.text(E, y, f" {name}\n E={E:g}", color="0.35", fontsize=9,
+                va=va, ha="left")
 
 
 def fig_exposure_sweep(params: ModelParams) -> None:
@@ -88,25 +88,20 @@ def fig_exposure_sweep(params: ModelParams) -> None:
     all_comp = results[0].total_cost_all_comp  # constant baseline
     all_conv = [r.total_cost_all_conv for r in results]
 
-    frac_types = np.asarray(frac_types)
-
     fig, (ax0, ax1) = plt.subplots(1, 2, figsize=(14, 5.6))
 
-    # --- (a) optimal composition of the lexicon: conventional vs compositional ---
-    ax0.fill_between(E_grid, 0, frac_types, color="C3", alpha=0.85,
-                     label="conventionalized (short, memorized)")
-    ax0.fill_between(E_grid, frac_types, 1.0, color="C0", alpha=0.85,
-                     label="compositional (long, transparent)")
-    ax0.plot(E_grid, frac_types, color="k", lw=1.2)
+    # --- (a) lexicon composition summaries vs society type ---
+    ax0.plot(E_grid, shared, lw=2, label="% lexicon shareable ($q \\geq 0.5$)")
+    ax0.plot(E_grid, frac_tokens, lw=2, label="% of usage that is conventional")
+    ax0.plot(E_grid, frac_types, lw=2, label="% of meanings conventionalized")
     ax0.set_xscale("log")
-    ax0.set_ylim(0, 1.0)
-    ax0.set_xlim(E_grid[0], E_grid[-1])
+    ax0.set_ylim(0, 1.08)
     ax0.set_xlabel("society type:  shared exposure $E$   (open  ←→  close-knit)")
-    ax0.set_ylabel("fraction of the lexicon (words / types)")
-    ax0.set_title("(a) Optimal composition of the lexicon\n"
-                  "(each x = a different society, its lexicon re-optimized)")
-    ax0.legend(frameon=False, loc="center left", fontsize=9)
-    _mark_archetypes(ax0, 0.98)
+    ax0.set_ylabel("fraction")
+    ax0.set_title("(a) Lexicon composition vs society type")
+    ax0.legend(frameon=False, loc="upper left", fontsize=9)
+    ax0.grid(alpha=0.3)
+    _mark_archetypes(ax0, 1.06)
 
     # --- (b) cost of optimal vs the two pure strategies ---
     ax1.plot(E_grid, total, lw=2.5, color="C3", label="OPTIMAL: best choice per meaning")
@@ -115,24 +110,24 @@ def fig_exposure_sweep(params: ModelParams) -> None:
     ax1.plot(E_grid, all_conv, ls=":", lw=2.5, color="C2",
              label="naive: everything conventional")
     ax1.set_xscale("log")
+    ax1.set_ylim(top=6700)  # headroom so archetype labels clear the dashed line
     ax1.set_xlabel("society type:  shared exposure $E$   (open  ←→  close-knit)")
     ax1.set_ylabel("total communicative cost per agent   (lower = better)")
     ax1.set_title("(b) Cost of the optimal strategy vs. naive ones\n"
                   "(gap to red = value of choosing per-meaning)")
-    ax1.legend(frameon=False, loc="upper right", fontsize=9)
+    ax1.legend(frameon=False, loc="lower left", fontsize=9)
     ax1.grid(alpha=0.3)
 
-    # annotate why 'all conventional' is U-shaped
-    imin = int(np.argmin(all_conv))
+    # annotate why 'all conventional' is U-shaped (kept clear of the flat line)
     ax1.annotate("all-conventional fails here\n(hearer often doesn't know it → repair)",
-                 xy=(E_grid[3], all_conv[3]), xytext=(E_grid[3] * 1.1, all_conv[3] - 900),
+                 xy=(E_grid[2], all_conv[2]), xytext=(40, 4650),
                  fontsize=8, color="C2",
                  arrowprops=dict(arrowstyle="->", color="C2", lw=1))
     ax1.annotate("and wastes memory here\n(stores the rare tail nobody needs short)",
-                 xy=(E_grid[-1], all_conv[-1]), xytext=(E_grid[-1] * 0.16, all_conv[-1] + 250),
-                 fontsize=8, color="C2",
+                 xy=(E_grid[-1], all_conv[-1]), xytext=(700, 5100),
+                 fontsize=8, color="C2", ha="center",
                  arrowprops=dict(arrowstyle="->", color="C2", lw=1))
-    _mark_archetypes(ax1, max(all_conv) * 1.0)
+    _mark_archetypes(ax1, 6600)
 
     fig.tight_layout()
     out = os.path.join(FIG_DIR, "exposure_sweep.png")
