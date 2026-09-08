@@ -1,10 +1,10 @@
 """
 Run the tradeoff model across a spectrum of societies and produce figures.
 
-Outputs (written to ./figures):
-  1. society_profiles.png       -- who-knows-what and the conventionalization frontier
-  2. lexicon_vs_society.png     -- lexicon composition vs society type
-  3. cost_vs_society.png        -- optimal vs naive strategy cost vs society type
+Narrative order (written to ./figures):
+  1. cost_vs_society.png         -- sanity check: mixed encoding beats naive strategies
+  2. shared_knowledge.png        -- how far conventions can be known, by society type
+  3. encoding_and_lexicon.png    -- which items to conventionalize, and the resulting lexicon
 """
 
 from __future__ import annotations
@@ -29,44 +29,6 @@ FIG_DIR = "figures"
 SOCIETIES = [("open", 20.0), ("loose", 80.0), ("mid", 300.0), ("close-knit", 5000.0)]
 
 
-def fig_society_profiles(params: ModelParams) -> None:
-    f = zipf_frequencies(params.V, params.zipf_s)
-    ranks = np.arange(1, params.V + 1)
-
-    fig, (ax0, ax1) = plt.subplots(1, 2, figsize=(13, 5))
-
-    # (a) knowledge curves: how deep into the frequency tail conventions are shared
-    for label, E in SOCIETIES:
-        ax0.plot(ranks, knowledge_prob(f, E, params.lam), label=f"{label} (E={E:g})")
-    ax0.set_xscale("log")
-    ax0.set_xlabel("meaning, by frequency rank (1 = most frequent)")
-    ax0.set_ylabel("P(random hearer knows the convention),  $q_i$")
-    ax0.set_title("(a) How far shared knowledge reaches into the tail")
-    ax0.legend(frameon=False)
-    ax0.grid(alpha=0.3)
-
-    # (b) conventionalization frontier: optimal encoding per item, per society
-    E_grid = np.geomspace(10, 8000, 60)
-    frontier = np.array([evaluate_society(E, params).conventionalize for E in E_grid])
-    mesh = ax1.pcolormesh(
-        ranks, E_grid, frontier.astype(float),
-        shading="auto", cmap="RdYlBu_r", vmin=0, vmax=1,
-    )
-    ax1.set_xscale("log")
-    ax1.set_yscale("log")
-    ax1.set_xlabel("meaning, by frequency rank")
-    ax1.set_ylabel("society: shared exposure  $E$  (open → close-knit)")
-    ax1.set_title("(b) Optimal encoding\n(red = conventional, blue = compositional)")
-    cbar = fig.colorbar(mesh, ax=ax1, ticks=[0, 1])
-    cbar.ax.set_yticklabels(["compositional", "conventional"])
-
-    fig.tight_layout()
-    out = os.path.join(FIG_DIR, "society_profiles.png")
-    fig.savefig(out, dpi=140)
-    plt.close(fig)
-    print("wrote", out)
-
-
 def _mark_archetypes(ax, y: float, va: str = "top") -> None:
     """Drop labelled guide-lines for the open and close-knit archetypes."""
     for E, name in [(20.0, "open"), (5000.0, "close-knit")]:
@@ -79,33 +41,6 @@ def _sweep(params: ModelParams):
     E_grid = np.geomspace(10, 8000, 80)
     results = sweep_exposure(E_grid, params)
     return E_grid, results
-
-
-def fig_lexicon_vs_society(params: ModelParams) -> None:
-    E_grid, results = _sweep(params)
-    frac_types = [r.frac_conv_types for r in results]
-    frac_tokens = [r.frac_conv_tokens for r in results]
-    shared = [r.shared_vocab_frac for r in results]
-
-    fig, ax = plt.subplots(figsize=(9.5, 5))
-    ax.plot(E_grid, shared, lw=2, label="% lexicon shareable ($q \\geq 0.5$)")
-    ax.plot(E_grid, frac_tokens, lw=2, label="% of usage that is conventional")
-    ax.plot(E_grid, frac_types, lw=2, label="% of meanings conventionalized")
-    ax.set_xscale("log")
-    ax.set_ylim(0, 1.08)
-    ax.set_xlabel("society type:  shared exposure $E$   (open  ←→  close-knit)")
-    ax.set_ylabel("fraction")
-    ax.set_title("Lexicon composition vs society type")
-    ax.legend(frameon=False, loc="upper left", fontsize=9,
-              bbox_to_anchor=(1.02, 1.0), borderaxespad=0)
-    ax.grid(alpha=0.3)
-    _mark_archetypes(ax, 1.06)
-
-    fig.tight_layout()
-    out = os.path.join(FIG_DIR, "lexicon_vs_society.png")
-    fig.savefig(out, dpi=140)
-    plt.close(fig)
-    print("wrote", out)
 
 
 def fig_cost_vs_society(params: ModelParams) -> None:
@@ -124,8 +59,7 @@ def fig_cost_vs_society(params: ModelParams) -> None:
     ax.set_ylim(top=6700)
     ax.set_xlabel("society type:  shared exposure $E$   (open  ←→  close-knit)")
     ax.set_ylabel("total communicative cost per agent   (lower = better)")
-    ax.set_title("Cost of the optimal strategy vs. naive ones\n"
-                 "(gap to red = value of choosing per-meaning)")
+    ax.set_title("Mixed encoding beats both naive strategies")
     ax.legend(frameon=False, loc="lower left", fontsize=9)
     ax.grid(alpha=0.3)
 
@@ -146,12 +80,82 @@ def fig_cost_vs_society(params: ModelParams) -> None:
     print("wrote", out)
 
 
+def fig_shared_knowledge(params: ModelParams) -> None:
+    f = zipf_frequencies(params.V, params.zipf_s)
+    ranks = np.arange(1, params.V + 1)
+
+    fig, ax = plt.subplots(figsize=(7.5, 5))
+    for label, E in SOCIETIES:
+        ax.plot(ranks, knowledge_prob(f, E, params.lam), label=f"{label} (E={E:g})")
+    ax.set_xscale("log")
+    ax.set_xlabel("meaning, by frequency rank (1 = most frequent)")
+    ax.set_ylabel("P(random hearer knows the convention),  $q_i$")
+    ax.set_title("Shared exposure determines how far conventions can be known")
+    ax.legend(frameon=False)
+    ax.grid(alpha=0.3)
+
+    fig.tight_layout()
+    out = os.path.join(FIG_DIR, "shared_knowledge.png")
+    fig.savefig(out, dpi=140)
+    plt.close(fig)
+    print("wrote", out)
+
+
+def fig_encoding_and_lexicon(params: ModelParams) -> None:
+    f = zipf_frequencies(params.V, params.zipf_s)
+    ranks = np.arange(1, params.V + 1)
+    E_grid_hm = np.geomspace(10, 8000, 60)
+    frontier = np.array([evaluate_society(E, params).conventionalize for E in E_grid_hm])
+
+    E_grid, results = _sweep(params)
+    frac_types = [r.frac_conv_types for r in results]
+    frac_tokens = [r.frac_conv_tokens for r in results]
+    shared = [r.shared_vocab_frac for r in results]
+
+    fig, (ax0, ax1) = plt.subplots(1, 2, figsize=(13.5, 5.2))
+
+    mesh = ax0.pcolormesh(
+        ranks, E_grid_hm, frontier.astype(float),
+        shading="auto", cmap="RdYlBu_r", vmin=0, vmax=1,
+    )
+    ax0.set_xscale("log")
+    ax0.set_yscale("log")
+    ax0.set_xlabel("meaning, by frequency rank")
+    ax0.set_ylabel("society: shared exposure  $E$  (open → close-knit)")
+    ax0.set_title("(a) Which meanings to conventionalize")
+    cbar = fig.colorbar(mesh, ax=ax0, ticks=[0, 1])
+    cbar.ax.set_yticklabels(["compositional", "conventional"])
+
+    ax1.plot(E_grid, shared, lw=2, label="% lexicon shareable ($q \\geq 0.5$)")
+    ax1.plot(E_grid, frac_tokens, lw=2, label="% of usage that is conventional")
+    ax1.plot(E_grid, frac_types, lw=2, label="% of meanings conventionalized")
+    ax1.set_xscale("log")
+    ax1.set_ylim(0, 1.08)
+    ax1.set_xlabel("society type:  shared exposure $E$   (open  ←→  close-knit)")
+    ax1.set_ylabel("fraction")
+    ax1.set_title("(b) What the resulting lexicon looks like")
+    ax1.legend(frameon=False, loc="center left", fontsize=8)
+    ax1.grid(alpha=0.3)
+    _mark_archetypes(ax1, 1.06)
+
+    fig.tight_layout()
+    out = os.path.join(FIG_DIR, "encoding_and_lexicon.png")
+    fig.savefig(out, dpi=140)
+    plt.close(fig)
+    print("wrote", out)
+
+
 def main() -> None:
     os.makedirs(FIG_DIR, exist_ok=True)
     params = ModelParams()
-    fig_society_profiles(params)
-    fig_lexicon_vs_society(params)
     fig_cost_vs_society(params)
+    fig_shared_knowledge(params)
+    fig_encoding_and_lexicon(params)
+    for stale in ("society_profiles.png", "lexicon_vs_society.png"):
+        path = os.path.join(FIG_DIR, stale)
+        if os.path.exists(path):
+            os.remove(path)
+            print("removed", path)
     print("\nAll figures written to ./figures/")
 
 

@@ -58,18 +58,22 @@ python society_model.py       # quick numeric summary of 3 archetypal societies
 python run_experiments.py     # generate all figures in ./figures/
 ```
 
-## What the model predicts (with default parameters)
+## Figures (narrative order)
 
-1. **Conventionalization frontier follows frequency.** In every society, the
-   frequent core is conventionalized and the tail stays compositional; closer-
-   knit societies push the frontier deeper into the tail
-   (`figures/society_profiles.png`).
-2. **Open societies still conventionalize their frequent core.** Even at low `E`,
-   ~1% of *types* are conventional but they carry ~40%+ of *tokens*
-   (`figures/lexicon_vs_society.png`).
-3. **Being all-conventional backfires in close-knit societies.** Memorizing the
-   rare tail wastes memory; only per-item optimization keeps improving
-   (`figures/cost_vs_society.png`).
+1. **Sanity check** (`figures/cost_vs_society.png`). Mixed (per-meaning) encoding
+   beats both naive strategies in every society. All-compositional is flat —
+   sharing does not help if nothing is memorized. All-conventional is U-shaped:
+   it fails with strangers and wastes memory on the rare tail when everyone
+   *could* share it.
+2. **Why society type matters** (`figures/shared_knowledge.png`). Shared
+   exposure `E` sets how far into the frequency tail a random hearer knows a
+   convention. This `q_i` is the input to the cost comparison.
+3. **What lexicon that produces** (`figures/encoding_and_lexicon.png`).
+   (a) Conventionalize the frequent core; closer-knit societies push the
+   frontier deeper, but the tail stays compositional. (b) Aggregating that
+   choice: even open societies conventionalize a few types that carry a large
+   share of usage; close-knit societies can share almost the whole lexicon,
+   but still only conventionalize ~17% of types.
 
 ## Knobs to explore
 
