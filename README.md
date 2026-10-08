@@ -42,7 +42,7 @@ Knobs live in `ModelParams` (`society_model.py`): `V`, `zipf_s`, `cost_comp`, `c
 
 ## Part 2 — corpus
 
-Code and figures: `corpus/`.
+Code, figures, and a longer write-up: `corpus/` (`corpus/README.md`).
 
 Per-word **transparency** is how well a word's meaning can be predicted from its spelling, relative to a form-blind baseline. The pipeline never builds morpheme vectors. A single map from character n-grams to a GloVe vector is trained on other words, and the target is held out.
 
@@ -59,6 +59,7 @@ python run_pipeline.py --mode subtlex     # SUBTLEX-US, 30k subsample
 python run_pipeline.py --mode subtlex-gr  # SUBTLEX-GR ∩ Greek GloVe 300d
 python run_pipeline.py --mode ladec       # LADEC compounds, native Zipf only
 python run_pipeline.py --mode all
+python score_word.py dog --lexicon data/morpholex_words.csv
 ```
 
 English results are in `corpus/figures/transparency_vs_freq_english.png` (LADEC, MorphoLex, SUBTLEX-US). Greek results are in `corpus/figures/transparency_vs_freq_greek.png`. Score tables and regression coefficients are written to `corpus/outputs/` on a run.
