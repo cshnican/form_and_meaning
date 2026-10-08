@@ -1,2 +1,8 @@
 numpy>=2.0
 matplotlib>=3.8
+pandas>=2.0
+scikit-learn>=1.4
+statsmodels>=0.14
+scipy>=1.11
+wordfreq>=3.0
+openpyxl>=3.1

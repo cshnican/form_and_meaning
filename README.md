@@ -1,92 +1,66 @@
-# Compositionality vs. conventionalization: a cost model
+# Form and meaning
 
-A small cost model of *how a society should encode form–meaning pairings*,
-given how widely its vocabulary can be shared.
+One study, two parts.
 
-## The idea
+1. **Simulation.** A community with less common knowledge tends to have a higher degree of transparency.
+2. **Corpus.** More frequent English and Greek words tend to be less transparent and more conventionalized.
+
+The simulation asks when a society should conventionalize a meaning. The corpus asks whether real lexicons show the frequency half of that prediction: frequent words are the ones whose meanings are not recoverable from their spelling.
+
+## Part 1 — simulation
+
+Code: `society_model.py`, `run_experiments.py`. Figures: `figures/`.
 
 Each meaning can be encoded two ways:
 
 | encoding | production cost | learning cost | works with strangers? |
 |---|---|---|---|
-| **compositional** (built from parts) | high (long) | none (transparent) | yes |
-| **conventional** (short, memorized) | low (short) | one-time, per learner | only if hearer shares it |
+| **transparent** (built from parts) | high (long) | none (inferable) | yes |
+| **conventional** (short, memorized) | low (short) | one-time, per learner | only if the hearer shares it |
 
-A population minimizes **total cost = production (paid every use) + memory
-(paid once per person who stores it)**. Because memory amortizes over
-*frequency × number of sharers*, conventionalizing a meaning pays off only when
-it is **both frequent and widely shared**.
+A population minimizes communication and learning cost. Memory amortizes over frequency times the number of people who share the form, so conventionalizing a meaning pays off only when it is both frequent and widely shared.
 
-**Society type** enters through *shared exposure* `E` — how many community-wide
-exposures a typical learner accumulates:
+**Society type** enters through shared exposure `E` — how many community-wide exposures a typical learner accumulates. Less common knowledge (small `E`) leaves more of the lexicon transparent. Close-knit societies (large `E`) can conventionalize further down the frequency tail. The share of vocabulary that is commonly known is an output of `E`, and it caps how far conventionalization can profitably reach.
 
-- **Close-knit society** → large `E` → conventions are shared even for rare
-  meanings → most of the lexicon *can* be opaque/short.
-- **Open/complex society** → small `E` → only the frequent core is commonly
-  shared → the long tail must stay compositional (decodable by strangers).
-
-So "% of shared vocabulary" is an **output** of the society's exposure level,
-and it is the thing that caps how far down the frequency distribution
-conventionalization can profitably reach.
-
-## Model in one line
-
-For meaning *i* with frequency *f_i*, knowledge of its convention in the
-population is `q_i = 1 - exp(-λ · E · f_i)`. The society conventionalizes *i*
-iff the expected conventional cost beats the compositional cost:
-
-```
-comp:  f_i · T · L
-conv:  f_i · T · [ l + (1 - q_i)·repair ]  +  m · q_i
-```
-
-(`L` = compositional length, `l` = conventional length, `T` = usage horizon,
-`m` = memory cost per stored form.)
-
-## Files
-
-- `society_model.py` — core cost model, per-item optimizer, aggregate summaries.
-- `run_experiments.py` — sweeps societies and writes figures to `figures/`.
-
-## Run
+For meaning *i* with frequency *f_i*, knowledge of its convention is `q_i = 1 - exp(-λ · E · f_i)`. The society conventionalizes *i* when the expected conventional cost beats the transparent cost.
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
-python society_model.py       # quick numeric summary of 3 archetypal societies
-python run_experiments.py     # generate all figures in ./figures/
+python society_model.py       # numeric summary of three societies
+python run_experiments.py     # write figures/ 
 ```
 
-## Figures (narrative order)
+Figures, in narrative order:
 
-1. **Sanity check** (`figures/cost_vs_society.png`). Mixed (per-meaning) encoding
-   beats both naive strategies in every society. All-compositional is flat —
-   sharing does not help if nothing is memorized. All-conventional is U-shaped:
-   it fails with strangers and wastes memory on the rare tail when everyone
-   *could* share it.
-2. **Why society type matters** (`figures/shared_knowledge.png`). Shared
-   exposure `E` sets how far into the frequency tail a random hearer knows a
-   convention. This `q_i` is the input to the cost comparison.
-3. **What lexicon that produces** (`figures/encoding_and_lexicon.png`).
-   (a) Conventionalize the frequent core; closer-knit societies push the
-   frontier deeper, but the tail stays compositional. (b) Aggregating that
-   choice: even open societies conventionalize a few types that carry a large
-   share of usage; close-knit societies can share almost the whole lexicon,
-   but still only conventionalize ~17% of types.
+1. `figures/cost_vs_society.png` — mixed encoding beats both naive strategies. All-transparent is flat. All-conventional is U-shaped.
+2. `figures/shared_knowledge.png` — `E` sets how far into the frequency tail a random hearer knows a convention.
+3. `figures/encoding_and_lexicon.png` — conventionalize the frequent core; the tail stays transparent. Even open societies conventionalize a few types that carry most of the usage.
 
-## Knobs to explore
+Knobs live in `ModelParams` (`society_model.py`): `V`, `zipf_s`, `cost_comp`, `cost_conv`, `cost_repair`, `mem_cost`, `horizon`, `lam`.
 
-All in `ModelParams` (`society_model.py`): `V`, `zipf_s`, `cost_comp`,
-`cost_conv`, `cost_repair`, `mem_cost`, `horizon`, `lam`. Try a shallower Zipf
-(`zipf_s < 1`), a cheaper memory (`mem_cost` down), or a harsher failure penalty
-(`cost_repair` up) to see the frontier move.
+## Part 2 — corpus
 
-## Open modeling question (worth deciding next)
+Code and figures: `corpus/`.
 
-Right now `E` is a single society-wide number. A more realistic version makes
-shared exposure **relationship-specific** (intimate circle > subgroup > whole
-society), so a speaker picks conventional vs. compositional depending on *who
-they are addressing*. That naturally accommodates jargon / private lexicons
-inside an otherwise open society.
+Per-word **transparency** is how well a word's meaning can be predicted from its spelling, relative to a form-blind baseline. The pipeline never builds morpheme vectors. A single map from character n-grams to a GloVe vector is trained on other words, and the target is held out.
 
+```
+transparency(w) = cos(g(form_w), v_w) − cos(mean(v_¬w), v_w)
+```
+
+Leading principal components of the meaning space are dropped before scoring (all-but-the-top; Mu & Viswanath 2018). The regressions are `transparency ~ zipf_freq` and the same model with a hubness covariate (mean cosine to five nearest neighbors). A negative frequency slope means more frequent words are less transparent.
+
+```bash
+cd corpus
+python run_pipeline.py --mode morpholex   # MorphoLex ∩ English GloVe 50d
+python run_pipeline.py --mode subtlex     # SUBTLEX-US, 30k subsample
+python run_pipeline.py --mode subtlex-gr  # SUBTLEX-GR ∩ Greek GloVe 300d
+python run_pipeline.py --mode ladec       # LADEC compounds, native Zipf only
+python run_pipeline.py --mode all
+```
+
+English results are in `corpus/figures/transparency_vs_freq_english.png` (LADEC, MorphoLex, SUBTLEX-US). Greek results are in `corpus/figures/transparency_vs_freq_greek.png`. Score tables and regression coefficients are written to `corpus/outputs/` on a run.
+
+MorphoLex uses all alphabetic types (not nouns only), wordfreq Zipf, and a random subsample of 30,000 after the GloVe intersect. SUBTLEX-US Zipf is `log10(SUBTLWF)+3`. SUBTLEX-GR Zipf is `log10(SUBTLEX_WF)+3`. LADEC keeps only compounds that have LADEC's own SUBTLEX `Zipfvalue`.

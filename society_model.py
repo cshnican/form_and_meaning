@@ -5,16 +5,16 @@ Idea
 ----
 Each meaning can be encoded in one of two ways:
 
-  * COMPOSITIONAL: build the utterance from parts. It is LONG (high production
-    cost) but transparent -- any hearer can decode it with no prior memory.
+  * TRANSPARENT: build the utterance from parts. It is LONG (high production
+    cost) but any hearer can decode it with no prior memory.
 
   * CONVENTIONAL: use a short, memorized, opaque form. It is SHORT (low
     production cost) but must be LEARNED, and it only works if the *hearer* also
     shares the convention. If they don't, the message fails and the speaker has
-    to fall back on describing it compositionally.
+    to fall back on a transparent description.
 
 A "language" (or a population) chooses, per meaning, whichever encoding gives
-lower expected total cost. Two costs trade off:
+lower expected communication and learning cost. Two costs trade off:
 
   * production cost   -- paid EVERY time the meaning is used  (favours short)
   * learning/memory   -- paid ONCE per person who stores it   (favours few)
@@ -56,10 +56,10 @@ class ModelParams:
     horizon: float = 1000.0  # T: communication events a typical agent takes part in
 
     # production costs (in arbitrary "effort" units, e.g. syllables)
-    cost_comp: float = 6.0   # L : cost of a compositional (transparent) utterance
+    cost_comp: float = 6.0   # L : cost of a transparent utterance
     cost_conv: float = 1.0   # l : cost of a conventional (short) utterance
     # on a failed conventional attempt the speaker repairs by describing it;
-    # repair cost defaults to a full compositional utterance.
+    # repair cost defaults to a full transparent utterance.
     cost_repair: float = 6.0
 
     # learning / memory
@@ -70,7 +70,7 @@ class ModelParams:
 
     def __post_init__(self) -> None:
         if self.cost_conv >= self.cost_comp:
-            raise ValueError("conventional forms should be cheaper to produce than compositional ones")
+            raise ValueError("conventional forms should be cheaper to produce than transparent ones")
 
 
 def zipf_frequencies(V: int, s: float = 1.0) -> np.ndarray:
@@ -99,11 +99,11 @@ class ModelResult:
     freqs: np.ndarray
     q: np.ndarray                    # P(random hearer knows convention), per item
     conventionalize: np.ndarray      # bool: optimal choice per item
-    cost_comp_item: np.ndarray       # per-item cost if compositional
+    cost_comp_item: np.ndarray       # per-item cost if transparent
     cost_conv_item: np.ndarray       # per-item cost if conventional
     cost_item: np.ndarray            # per-item cost under the optimal choice
     total_cost: float                # sum over items (optimal)
-    total_cost_all_comp: float       # baseline: everything compositional
+    total_cost_all_comp: float       # baseline: everything transparent
     total_cost_all_conv: float       # baseline: everything conventional
     # summaries of "shared vocabulary"
     frac_conv_types: float           # fraction of meanings conventionalized (count)
@@ -125,7 +125,7 @@ def evaluate_society(exposure: float, params: ModelParams | None = None) -> Mode
     T = p.horizon
 
     # Expected cost per item over the horizon, for each encoding choice.
-    #   compositional : used f*T times, each costs L, no memory.
+    #   transparent   : used f*T times, each costs L, no memory.
     cost_comp_item = f * T * p.cost_comp
 
     #   conventional  : used f*T times; each success costs l, each failure costs
@@ -181,6 +181,6 @@ if __name__ == "__main__":
             f"conv types={r.frac_conv_types:5.1%} | "
             f"conv tokens={r.frac_conv_tokens:5.1%} | "
             f"shared vocab={r.shared_vocab_frac:5.1%} | "
-            f"total cost={r.total_cost:9.1f} "
+            f"communication and learning cost={r.total_cost:9.1f} "
             f"(all-comp={r.total_cost_all_comp:.0f}, all-conv={r.total_cost_all_conv:.0f})"
         )

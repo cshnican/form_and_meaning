@@ -4,6 +4,18 @@ __pycache__/
 .venv/
 venv/
 
+# Corpus caches and generated tables (see corpus/)
+corpus/data/glove/
+corpus/data/cache/
+corpus/data/external/
+corpus/data/subtlex_glove.csv
+corpus/data/subtlex_glove.json
+corpus/data/subtlex_gr_glove.csv
+corpus/data/subtlex_gr_glove.json
+corpus/outputs/
+*.npy
+*.pt
+
 # macOS
 .DS_Store
 Icon?
