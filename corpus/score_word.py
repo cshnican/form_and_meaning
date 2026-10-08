@@ -31,26 +31,26 @@ ROOT = Path(__file__).resolve().parent  # repo root
 
 def main() -> None:
     """Parse args, train on the lexicon (minus the queries), and print each word's transparency."""
-    p = argparse.ArgumentParser(description=__doc__)
+    p = argparse.ArgumentParser(description=__doc__)  # CLI help text is this module's docstring
     p.add_argument("words", nargs="+", help="word(s) to score (letters only)")  # one or more query words
     p.add_argument(
         "--lexicon",
-        type=Path,
+        type=Path,  # path to a word CSV
         default=ROOT / "data" / "morpholex_words.csv",  # default training lexicon
         help="training CSV with a 'word' column (default: MorphoLex)",
     )
     p.add_argument(
         "--whiten-d",
-        type=int,
+        type=int,  # integer PC count
         default=2,  # drop 2 leading PCs (all-but-the-top), matching the pipeline default
         help="drop this many leading GloVe PCs (0 disables)",
     )
-    args = p.parse_args()
+    args = p.parse_args()  # parse the command line
 
     queries = [w.strip().lower() for w in args.words]  # normalize query words
     bad = [w for w in queries if not w.isalpha()]      # only a–z queries are supported
-    if bad:
-        sys.exit(f"only a-z words are supported; got {bad}")
+    if bad:  # reject digits, hyphens, Greek script, etc.
+        sys.exit(f"only a-z words are supported; got {bad}")  # fail before loading GloVe
 
     lexicon = load_word_csv(args.lexicon)  # load the training lexicon + features
     vocab = list(dict.fromkeys(lexicon["word"].tolist() + queries))  # dedup union of lexicon + queries
@@ -61,21 +61,21 @@ def main() -> None:
     print(f"in GloVe: {len(train_df)} training words", file=sys.stderr)
 
     scores = score_query_words(  # score each query, holding it out of training if present
-        queries,
-        train_df["word"].to_numpy(),
-        train_mat,
-        glove,
-        whiten_d=args.whiten_d,
+        queries,  # words to score
+        train_df["word"].to_numpy(),  # training types
+        train_mat,  # training meaning matrix
+        glove,  # vector lookup including queries
+        whiten_d=args.whiten_d,  # all-but-the-top
     )
     show = scores[  # columns to display
         [
-            "word",
-            "transparency",
-            "cosine",
-            "cosine_null",
-            "rank_frac",
-            "in_lexicon",
-            "error",
+            "word",  # query
+            "transparency",  # form cosine minus centroid
+            "cosine",  # form cosine
+            "cosine_null",  # centroid cosine
+            "rank_frac",  # retrieval rank
+            "in_lexicon",  # whether it was in the training CSV
+            "error",  # empty unless missing from GloVe
         ]
     ]
     with pd.option_context("display.max_columns", None, "display.width", 120):  # don't truncate output
@@ -83,5 +83,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    os.chdir(ROOT)  # resolve data/ paths relative to the repo root
-    main()
+    os.chdir(ROOT)  # resolve data/ paths relative to this study folder
+    main()  # score the requested words

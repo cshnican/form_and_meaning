@@ -22,9 +22,9 @@ def ensure_transparency(df: pd.DataFrame) -> pd.DataFrame:
         elif "opacity" in out.columns:  # backward-compat with an old "opacity" convention
             out["transparency"] = 1.0 - out["opacity"]
     drop = [c for c in _DROP if c in out.columns]  # which legacy columns are present
-    if drop:
+    if drop:  # only call drop when there is something to remove
         out = out.drop(columns=drop)  # remove them
-    return out
+    return out  # cleaned frame with a transparency column
 
 
 def join_scores(lexicon: pd.DataFrame, scores: pd.DataFrame) -> pd.DataFrame:
@@ -35,7 +35,7 @@ def join_scores(lexicon: pd.DataFrame, scores: pd.DataFrame) -> pd.DataFrame:
 def fit_models(df: pd.DataFrame) -> dict:
     """Overall transparency ~ frequency, with a hubness covariate."""
     df = ensure_transparency(df)  # guarantee the transparency column exists
-    models = {}
+    models = {}  # name → fitted OLS
     models["transparency_freq"] = smf.ols("transparency ~ zipf_freq", data=df).fit()  # baseline model
     if "hubness" in df.columns:  # only when hubness was computed (n <= PAIRWISE_MAX_N)
         models["transparency_freq_hub"] = smf.ols(
