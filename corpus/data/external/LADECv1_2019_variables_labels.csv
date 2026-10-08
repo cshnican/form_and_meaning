@@ -1,0 +1,85 @@
+position,name,type,isnumeric,format,vallab,varlab
+1,id_master,long,1,%9.0g,,id
+2,c1,str31,0,%31s,,first constituent
+3,c2,str31,0,%31s,,second constituent
+4,stim,str17,0,%17s,,compound
+5,obs,byte,1,%9.0g,,observation # by compound
+6,obsc1,int,1,%9.0g,,observation # by C1
+7,obsc2,int,1,%9.0g,,observation # by C2
+8,stimlen,byte,1,%9.0g,,length of compound
+9,c1len,byte,1,%9.0g,,length of C1
+10,c2len,byte,1,%9.0g,,length of C2
+11,nparses,byte,1,%12.0g,,# parses per stim
+12,correctParse,byte,1,%8.0g,correct,correct parse? (1=yes 0 = no)
+13,ratingcmp,float,1,%9.0g,,Predictability rating
+14,ratingC1,float,1,%9.0g,,Meaning retention rating for C1
+15,ratingC2,float,1,%9.0g,,Meaning retention rating for C2
+16,isPlural,byte,1,%8.0g,,is plural? (1=yes 0 = no)
+17,nc1_cmp,int,1,%9.0g,, c1 family size based  on correctly parsed compounds
+18,nc2_cmp,int,1,%9.0g,, c2 family size based  on correctly parsed compounds
+19,nc1_cmpnoplural,byte,1,%9.0g,," c1 family size based  on correctly parsed compounds, no plurals"
+20,nc2_cmpnoplural,int,1,%9.0g,," c2 family size based  on correctly parsed compounds, no plurals"
+21,sentiment_stim,str13,0,%13s,,sentiment stim - Mathematica classifier
+22,sentiment_c1,str13,0,%13s,,sentiment c1 - Mathematica classifier
+23,sentiment_c2,str13,0,%13s,,sentiment c2 - Mathematica classifier
+24,sentimentprobpos_stim,float,1,%9.0g,,prob of positive sentiment stim - Mathematica classifier
+25,sentimentprobpos_c1,float,1,%9.0g,,prob of positive sentiment c1 - Mathematica classifier
+26,sentimentprobpos_c2,float,1,%9.0g,,prob of positive sentiment c2 - Mathematica classifier
+27,sentimentprobneg_stim,float,1,%9.0g,,prob of negative sentiment stim - Mathematica classifier
+28,sentimentprobneg_c1,float,1,%9.0g,,prob of negative sentiment c1 - Mathematica classifier
+29,sentimentprobneg_c2,float,1,%9.0g,,prob of negative sentiment c2 - Mathematica classifier
+30,sentimentratioposneg_stim,float,1,%9.0g,,ratio probPos/probNeg stim- Mathematica sentiment classifier
+31,sentimentratioposneg_c1,float,1,%9.0g,,ratio of probPos/probNeg c1 - Mathematica sentiment classifier
+32,sentimentratioposneg_c2,float,1,%9.0g,,ratio of probPos/probNeg c2 - Mathematica sentiment classifier
+33,profanity_stim,byte,1,%8.0g,profanity_label,is stim profane - Mathemetica classifier
+34,profanity_c1,byte,1,%8.0g,profanity_label,is c1 profane - Mathemetica classifier
+35,profanity_c2,byte,1,%8.0g,profanity_label,is c2 profane - Mathemetica classifier
+36,isCommonstim,byte,1,%9.0g,,isCommonStim Mathematica_CommonList
+37,isCommonC1,byte,1,%9.0g,,isCommonC1 Mathematica_CommonList
+38,isCommonC2,byte,1,%9.0g,,isCommonC2 Mathematica_CommonList
+39,bg_boundary,str2,0,%9s,,bigram at c1c2 boundary
+40,bgJonesMewhort,double,1,%10.0g,,bigram frequency from JonesMewhort2004
+41,bgSUBTLEX,long,1,%12.0g,,bigram frequency from SUBLEX
+42,bgFacebook,long,1,%12.0g,,bigram frequency from Facebook
+43,inSUBTLEX,byte,1,%9.0g,,compound in SUBTLEX-US? (1=yes 0 = no)
+44,inBLP,byte,1,%9.0g,,compound in BLP? (1=yes 0 = no)
+45,inELP,byte,1,%9.0g,,compound in ELP? (1=yes 0 = no)
+46,inJuhaszLaiWoodcock,byte,1,%9.0g,,"compound in Juhasz, Lai, & Woodcock (2005)? (1=yes 0 = no)"
+47,c1_inELP,byte,1,%9.0g,,first constituent in ELP? (1=yes 0 = no)
+48,c1_inBrysbaert,byte,1,%9.0g,,"first constituent in Brysbaert, Warriner, & Kuperman (2014)? (1=yes 0 = no)"
+49,c1_inWordnet,byte,1,%9.0g,,first constituent in Wordnet? (1=yes 0 = no)
+50,c1_inMMA,byte,1,%9.0g,,first constituent in Mathematica? (1=yes 0 = no)
+51,c2_inELP,byte,1,%9.0g,,second constituent in ELP? (1=yes 0 = no)
+52,c2_inBrysbaert,byte,1,%9.0g,,"second constituent in Brysbaert, Warriner, & Kuperman (2014)? (1=yes 0 = no)"
+53,c2_inWordnet,byte,1,%9.0g,,second constituent in Wordnet? (1=yes 0 = no)
+54,c2_inMMA,byte,1,%9.0g,,second constituent in Mathematica? (1=yes 0 = no)
+55,LSAc1c2,double,1,%10.0g,,LSA between C1 and C2
+56,LSAc1stim,double,1,%10.0g,,LSA between C1 and compound
+57,LSAc2stim,double,1,%10.0g,,LSA between C2 and compound
+58,stim_SLlg10wf,float,1,%9.0g,sublex_lg10wf,SUBTLEX log word frequency
+59,BLPbncfrequency,int,1,%9.0g,,BNC frequency of the compound from BLP
+60,BLPbncfrequencymillion,float,1,%9.0g,,BNC frequency per million of the compound from BLP
+61,BLPrt,double,1,%10.0g,,BLP lexical decision times
+62,elp_ld_rt,double,1,%10.0g,,ELP lexical decision times
+63,elp_naming_mean_rt,float,1,%9.0g,,ELP naming times
+64,c1c2_snautCos,float,1,%9.0g,,c1c2 cosine distance snaut
+65,c1stim_snautCos,float,1,%9.0g,,c1stim cosine distance snaut
+66,c2stim_snautCos,float,1,%9.0g,,c2stim cosine distance snaut
+67,fbusfreq,double,1,%10.0g,,"facebook-based frequency per billion words in the American corpus, Herdagdelen &"
+68,fbukfreq,double,1,%10.0g,,"facebook-base frequency per billion words in the British corpus, Herdagdelen & M"
+69,valence_stim,float,1,%9.0g,,"valence of compound in Warriner, Kuperman, & Brysbaert (2013)"
+70,valence_c1,float,1,%9.0g,,"valence of first constituent in Warriner, Kuperman, & Brysbaert (2013)"
+71,valence_c2,float,1,%9.0g,,"valence of second constituent in Warriner, Kuperman, & Brysbaert (2013)"
+72,concreteness_stim,double,1,%10.0g,,"concreteness of compound in Brysbaert, Warriner, & Kuperman (2014)"
+73,concreteness_c1,double,1,%10.0g,,"concreteness of first constituent in Brysbaert, Warriner, & Kuperman (2014)"
+74,concreteness_c2,double,1,%10.0g,,"concreteness of second constituent in Brysbaert, Warriner, & Kuperman (2014)"
+75,Juhasz_tran,float,1,%8.0g,,"2015_trans Transparency rating from Juhasz, Lai, & Woodcock 2015"
+76,st_c1_mean,float,1,%9.0g,,st_c1_mean Kim et al (2018) BRM
+77,st_c2_mean,float,1,%9.0g,,st_c2_mean Kim et al (2018) BRM
+78,Zipfvalue,double,1,%10.0g,,Zipfvalue SUBTLEX-US
+79,c1_SLlg10wf,float,1,%9.0g,sublex_lg10wf,SUBTLEX log word frequency of C1
+80,c2_SLlg10wf,float,1,%9.0g,sublex_lg10wf,SUBTLEX log word frequency of C2
+81,c1_BLPbncfrequency,float,1,%9.0g,,BNC frequency of C1 from BLP
+82,c1_BLPbncfrequencymillion,float,1,%9.0g,,BNC frequency per million of C1 from BLP
+83,c2_BLPbncfrequency,float,1,%9.0g,,BNC frequency of C2 from BLP
+84,c2_BLPbncfrequencymillion,float,1,%9.0g,,BNC frequency per million of C2 from BLP

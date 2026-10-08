@@ -1,0 +1,9 @@
+{
+  "seed": 0,
+  "n": 30000,
+  "n_pool": 65926,
+  "pos": null,
+  "min_zipf": 0.0,
+  "pairwise_max_n": 30000,
+  "lexicon": "subtlex_glove.csv"
+}

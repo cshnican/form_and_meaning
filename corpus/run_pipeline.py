@@ -236,7 +236,7 @@ def run_subtlex(
         "pos": pos,
         "min_zipf": min_zipf,
         "pairwise_max_n": PAIRWISE_MAX_N,
-        "lexicon": str(out_csv),
+        "lexicon": out_csv.name,
     }
     meta_path = out_csv.with_suffix(".json")
     meta_path.write_text(json.dumps(meta, indent=2) + "\n")
@@ -294,7 +294,7 @@ def run_subtlex_gr(
         "min_zipf": min_zipf,
         "pairwise_max_n": PAIRWISE_MAX_N,
         "embeddings": "DFKI/glove-el-cc100",
-        "lexicon": str(SUBTLEX_GR_GLOVE),
+        "lexicon": SUBTLEX_GR_GLOVE.name,
     }
     meta_path = SUBTLEX_GR_GLOVE.with_suffix(".json")
     meta_path.write_text(json.dumps(meta, indent=2) + "\n")

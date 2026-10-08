@@ -10,6 +10,7 @@ Narrative order (written to ./figures):
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
 import matplotlib
 
@@ -27,7 +28,8 @@ from society_model import (
     zipf_frequencies,
 )
 
-FIG_DIR = "figures"
+ROOT = Path(__file__).resolve().parent
+FIG_DIR = str(ROOT / "figures")
 SOCIETIES = [("open", 20.0), ("loose", 80.0), ("mid", 300.0), ("close-knit", 5000.0)]
 
 

@@ -1,0 +1,9 @@
+{
+  "seed": 0,
+  "n": 30000,
+  "n_pool": 141470,
+  "min_zipf": 0.0,
+  "pairwise_max_n": 30000,
+  "embeddings": "DFKI/glove-el-cc100",
+  "lexicon": "subtlex_gr_glove.csv"
+}
