@@ -72,22 +72,6 @@ def fig_cost_vs_society(params: ModelParams) -> None:
               fontsize=9, ncol=1)  # one column
     ax.grid(alpha=0.3)  # light grid
 
-    note = dict(fontsize=8, color="C2", ha="center", va="center",  # shared annotation style
-                bbox=dict(boxstyle="round,pad=0.3", facecolor="white",  # white bubble behind text
-                          edgecolor="none", alpha=0.95))  # almost opaque
-    ax.annotate(  # why all-conventional fails in open societies
-        "all-conventional fails here\n(hearer often doesn't know it → repair)",  # callout text
-        xy=(E_grid[8], all_conv[8]), xytext=(90, 5750),  # arrow from text to the left hump
-        arrowprops=dict(arrowstyle="->", color="C2", lw=1),  # arrow styling
-        **note,  # shared bubble style
-    )
-    ax.annotate(  # why all-conventional wastes memory in close-knit societies
-        "and wastes memory here\n(stores the rare tail nobody needs short)",  # callout text
-        xy=(E_grid[-1], all_conv[-1]), xytext=(2500, 5750),  # arrow to the right tail
-        arrowprops=dict(arrowstyle="->", color="C2", lw=1),  # arrow styling
-        **note,  # shared bubble style
-    )
-
     fig.tight_layout()  # pack legend and axes
     out = os.path.join(FIG_DIR, "cost_vs_society.png")  # output path
     fig.savefig(out, dpi=140)  # write PNG
